@@ -58,14 +58,31 @@
       : 'nothing filtered yet';
   }
 
+  function showSafariNote() {
+    const note = $('permWarning');
+    note.hidden = false;
+    note.classList.remove('warn');
+    note.textContent = 'On Safari, grant this in Safari\u2019s own settings instead: ' +
+      'Settings \u2192 Apps \u2192 Safari \u2192 Extensions \u2192 AI Slop Blocker \u2192 ' +
+      'Allow on Every Website.';
+  }
+
   /* Broad host access is only requested at the moment it is actually needed,
    * so the install prompt stays narrow. */
   async function ensureHostPermission() {
+    /* Safari has no optional-permission prompt. Treating that as a refusal
+     * would make these toggles impossible to switch on, so accept and point
+     * the user at the place Safari actually asks. */
+    if (!api.permissions?.request) {
+      showSafariNote();
+      return true;
+    }
     try {
       if (await api.permissions.contains({ origins: ['<all_urls>'] })) return true;
       return await api.permissions.request({ origins: ['<all_urls>'] });
     } catch {
-      return false;
+      showSafariNote();
+      return true;
     }
   }
 

@@ -67,8 +67,16 @@
     });
 
     $('openOptions').addEventListener('click', () => {
-      if (api.runtime.openOptionsPage) api.runtime.openOptionsPage();
-      else api.tabs.create({ url: api.runtime.getURL('src/ui/options.html') });
+      /* Safari on iOS does not surface options_ui, and openOptionsPage can
+       * reject there even though it exists, so fall back to a plain tab. */
+      const asTab = () => api.tabs.create({ url: api.runtime.getURL('src/ui/options.html') });
+      try {
+        const opened = api.runtime.openOptionsPage?.();
+        if (opened && typeof opened.catch === 'function') opened.catch(asTab);
+        else if (!api.runtime.openOptionsPage) asTab();
+      } catch {
+        asTab();
+      }
       window.close();
     });
 

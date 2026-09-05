@@ -83,8 +83,12 @@ self-hosted, nobody else sees it), get the signed `.xpi` back, and open that fil
 Android. Your settings then sync between phone and desktop through Firefox Sync.
 
 There is no equivalent short version for iPhone. Apple does not allow a browser to install an
-extension from a file, so it is either Safari via Xcode (needs a Mac) or publishing to the add-on
-store for Orion. Both are written out in [docs/mobile.md](docs/mobile.md).
+extension from a file, so it is Safari via Xcode (needs a Mac) or publishing to the add-on store
+for Orion. **iPhone walkthrough: [docs/safari-ios.md](docs/safari-ios.md)**; the other routes are
+in [docs/mobile.md](docs/mobile.md).
+
+Note that no browser extension — this one or any other — can filter the **YouTube app**, only
+`youtube.com` in a browser.
 
 ---
 

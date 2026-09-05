@@ -78,31 +78,17 @@ you have access to a Mac.
 
 ### Route 1 — Safari, via Xcode (reliable, needs a Mac)
 
-This is the only route that definitely works, and it gives you a proper Safari
-extension.
+The only route that definitely works, and one conversion gets you the extension on
+both the iPhone and Safari on the Mac.
 
-```bash
-node tools/build.mjs
-xcrun safari-web-extension-converter dist/chrome \
-  --project-location ./safari --app-name "AI Slop Blocker" --bundle-identifier com.example.aislopblocker
-```
+**Full step-by-step: [safari-ios.md](safari-ios.md).** In short: build, run
+`xcrun safari-web-extension-converter dist/chrome`, set a signing team on both iOS
+targets in Xcode, run it onto the plugged-in phone, then enable it under
+Settings → Apps → Safari → Extensions and choose *Allow on Every Website*.
 
-Then in Xcode: select the iOS target, set your signing team, plug the phone in and
-press Run. On the phone: **Settings → Apps → Safari → Extensions → AI Slop Blocker**,
-turn it on, and choose **Allow on Every Website** (per-site permission works too, but
-you will be re-approving it constantly).
-
-The catches, in order of how much they will annoy you:
-
-- **You need a Mac with Xcode.** The converter ships as part of Xcode; there is no
-  Windows, Linux or on-device equivalent.
-- **A free Apple ID gets you 7 days.** After that the app stops working and you plug
-  the phone back in and press Run again. The Apple Developer Program ($99/year)
-  extends this to a year and lets you ship to the App Store.
-- Safari's extension APIs are close enough to Chrome's that this extension should
-  convert without changes. `scripting.registerContentScripts`, used only by the
-  opt-in catch-all site mode, is the part most likely to need attention; the six
-  built-in site adapters do not touch it.
+The catch worth knowing up front: with a free Apple ID the build expires after
+**7 days** and has to be re-run from Xcode. The Apple Developer Program ($99/year)
+extends that to a year.
 
 ### Route 2 — Orion, via addons.mozilla.org (no Mac, but no guarantees)
 

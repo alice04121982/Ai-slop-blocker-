@@ -40,10 +40,18 @@ if (typeof importScripts === 'function' && !globalThis.AISlop?.engine) {
   }
 
   async function hasHostAccess() {
+    /*
+     * Safari grants host access through its own per-site "Allow on Every
+     * Website" UI rather than the optional-permissions API, so an absent or
+     * throwing permissions API must not be read as "denied" — that would
+     * silently disable the deep check on every iPhone and Mac. Assume access
+     * and let the fetch itself fail if it turns out not to be there.
+     */
+    if (!api.permissions?.contains) return true;
     try {
       return await api.permissions.contains({ origins: ['<all_urls>'] });
     } catch {
-      return false;
+      return true;
     }
   }
 

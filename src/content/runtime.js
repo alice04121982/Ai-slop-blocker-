@@ -86,7 +86,9 @@
       const never = document.createElement('button');
       never.type = 'button';
       never.className = 'aislop-btn aislop-btn-quiet';
-      never.textContent = 'Always block ' + source;
+      /* Label only — the rule stored still uses the full source string. */
+      never.textContent = 'Always block ' +
+        (source.length > 26 ? source.slice(0, 25).trimEnd() + '…' : source);
       never.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -103,7 +105,7 @@
 
   function reveal(card) {
     card.removeAttribute(MARK);
-    card.classList.remove('aislop-blurred', 'aislop-hidden', 'aislop-bare');
+    card.classList.remove('aislop-blurred', 'aislop-hidden', 'aislop-bare', 'aislop-compact', 'aislop-wide');
     card.removeAttribute('title');
     card.querySelector(':scope > .aislop-overlay')?.remove();
     STATE.blocked.delete(card);
@@ -142,6 +144,24 @@
     /* An absolutely positioned overlay needs a positioned ancestor, and these
      * cards are usually static. Only touch it when we have to. */
     if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
+
+    /*
+     * Decide how much overlay the card can actually hold. A viewport media
+     * query cannot do this: the same phone shows full-width YouTube rows and
+     * postage-stamp image tiles on the same screen. A zero rect means the card
+     * has not been laid out yet, in which case assume there is room.
+     */
+    const rect = card.getBoundingClientRect();
+    if (rect.width < 200) {
+      /* A thumbnail-grid tile: only the badge and one button will fit. */
+      if (rect.width) card.classList.add('aislop-compact');
+    } else if (rect.height < 130) {
+      /* Short but wide, like a mobile YouTube result row. There is no vertical
+       * room for a stacked overlay but plenty of horizontal room, so lay it
+       * out along the row rather than throwing the reason away. */
+      card.classList.add('aislop-wide');
+    }
+
     card.appendChild(buildOverlay(card, verdict, action));
     return true;
   }

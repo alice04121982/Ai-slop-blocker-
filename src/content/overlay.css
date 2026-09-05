@@ -93,9 +93,37 @@
   background: transparent !important;
 }
 
-/* On very small cards there is no room for anything but the badge. */
-@media (max-width: 400px) {
-  .aislop-reason { display: none !important; }
+/*
+ * Cramped cards.
+ *
+ * This has to key off the card's own size, not the viewport: a phone shows
+ * full-width YouTube rows with plenty of room alongside thumbnail-grid tiles
+ * with none, so a media query gets it wrong in both directions. The runtime
+ * measures each card and sets this class.
+ */
+.aislop-compact {
+  font-size: 11px !important;
+}
+
+.aislop-compact .aislop-overlay {
+  gap: 4px !important;
+  padding: 4px !important;
+}
+
+.aislop-compact .aislop-badge {
+  font-size: 11px !important;
+}
+
+/* The reason and the secondary button are the first things to go; "Show
+   anyway" always survives, because a filter you cannot override is a trap. */
+.aislop-compact .aislop-reason,
+.aislop-compact .aislop-btn-quiet {
+  display: none !important;
+}
+
+.aislop-compact .aislop-btn {
+  padding: 3px 8px !important;
+  font-size: 11px !important;
 }
 
 /* A card that is the media element itself cannot hold the overlay, so it gets
@@ -130,4 +158,30 @@ video.aislop-bare:not(.aislop-blurred) {
 .aislop-overlay-chip .aislop-reason,
 .aislop-overlay-chip .aislop-actions {
   display: none !important;
+}
+
+/*
+ * Wide, short cards — a mobile YouTube result row is the canonical case.
+ * Stacking badge over reason over buttons does not fit in ~100px of height,
+ * but laying them along the row does, so nothing has to be dropped.
+ */
+.aislop-wide .aislop-overlay {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  gap: 4px 8px !important;
+  padding: 6px 10px !important;
+}
+
+.aislop-wide .aislop-reason {
+  flex: 1 1 120px !important;
+  min-width: 0 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.aislop-wide .aislop-badge,
+.aislop-wide .aislop-actions {
+  flex: 0 0 auto !important;
 }

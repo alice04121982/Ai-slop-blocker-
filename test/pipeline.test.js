@@ -168,3 +168,41 @@ test('a metadata verdict can block an item the text could not decide on', () => 
   );
   assert.equal(decide({ ...candidate, metadata: scanned }).block, true);
 });
+
+/* -------------------------------------------------- mobile YouTube bylines */
+
+test('a mobile YouTube byline yields just the channel, not the view count', () => {
+  const yt = adaptersFor('m.youtube.com').youtube;
+  const card = el('ytm-video-with-context-renderer', {}, [
+    el('a', { href: 'https://m.youtube.com/watch?v=x' }, [el('img', { src: 'https://i.ytimg.com/vi/x/hq.jpg' })]),
+    el('h3', { class: 'media-item-headline' }, [], 'Ancient Rome reconstructed'),
+    el('div', { class: 'ytm-badge-and-byline-renderer' }, [], 'AI History Shorts · 412K views · 2 days ago')
+  ]);
+  const candidate = yt.extract(card);
+  assert.equal(candidate.channel, 'AI History Shorts',
+    'a channel rule containing a view count could never match again');
+});
+
+test('a blocked-channel rule created from a mobile byline matches next time', () => {
+  const yt = adaptersFor('m.youtube.com').youtube;
+  const build = (views) => yt.extract(el('ytm-video-with-context-renderer', {}, [
+    el('a', { href: 'https://m.youtube.com/watch?v=x' }, [el('img', { src: 'https://i.ytimg.com/vi/x/hq.jpg' })]),
+    el('h3', { class: 'media-item-headline' }, [], 'Ancient Rome reconstructed'),
+    el('div', { class: 'ytm-badge-and-byline-renderer' }, [], `AI History Shorts · ${views} views · 2 days ago`)
+  ]));
+
+  // Block from one card, then meet the same channel again with a different count.
+  const rule = build('412K').channel;
+  const rules = settingsApi.rulesFrom(settingsApi.merge({ blockChannels: [rule] }));
+  assert.equal(engine.judge(build('998K'), rules, SETTINGS).block, true);
+});
+
+test('desktop bylines without a middot are left intact', () => {
+  const yt = adaptersFor('www.youtube.com').youtube;
+  const card = el('ytd-video-renderer', {}, [
+    el('a', { id: 'thumbnail', href: 'https://www.youtube.com/watch?v=y' }, [el('img', { src: 'x' })]),
+    el('a', { id: 'video-title', title: 'Rome' }, [], 'Rome'),
+    el('ytd-channel-name', {}, [el('a', {}, [], 'Fall of Civilizations')])
+  ]);
+  assert.equal(yt.extract(card).channel, 'Fall of Civilizations');
+});

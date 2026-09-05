@@ -93,6 +93,20 @@
     return img.src || '';
   }
 
+  /*
+   * Mobile YouTube packs channel, view count and upload age into a single
+   * metadata line separated by middots ("Channel Name · 412K views · 2 days
+   * ago"). Only the first segment is the channel; storing the rest would
+   * create a block rule containing a view count, which can never match again.
+   */
+  function firstSegment(value) {
+    return String(value || '')
+      .split(/[·•‧|]/)[0]
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 120);
+  }
+
   function hostLabel(url) {
     try {
       return new URL(url, location.origin).hostname.replace(/^www\./, '');
@@ -210,7 +224,7 @@
         text: [title, cardText(card)].join(' '),
         mediaUrl: card.querySelector('img')?.src || '',
         pageUrl: link?.href || '',
-        channel,
+        channel: firstSegment(channel),
         /* YouTube's own creator disclosure, rendered as a plain-text label. */
         platformDisclosure: /altered or synthetic content/i.test(body)
       };
@@ -333,5 +347,5 @@
     return specific.length ? specific : enabled;
   }
 
-  NS.adapters = { ALL, activeAdapters, nearestCard, cardText, parseImgres, hostLabel };
+  NS.adapters = { ALL, activeAdapters, nearestCard, cardText, parseImgres, hostLabel, firstSegment };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

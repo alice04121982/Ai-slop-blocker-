@@ -1,0 +1,133 @@
+/*
+ * Injected into every page we filter, so everything is namespaced and uses
+ * !important — Google and YouTube both ship rules aggressive enough to
+ * otherwise win against us.
+ */
+
+.aislop-hidden {
+  display: none !important;
+}
+
+.aislop-blurred {
+  /* A blur spreads past the element's box, so without this the haze bleeds
+     over neighbouring results. Safe here: the card is obscured either way. */
+  overflow: hidden !important;
+}
+
+.aislop-blurred > *:not(.aislop-overlay) {
+  filter: blur(18px) saturate(0.4) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+.aislop-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  background: rgba(17, 17, 20, 0.72) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font: 500 12px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+}
+
+.aislop-badge {
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.02em !important;
+}
+
+.aislop-reason {
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  opacity: 0.85 !important;
+  max-width: 95% !important;
+  /* Cards can be tiny; never let the reason push the buttons out of view. */
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.aislop-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  justify-content: center !important;
+}
+
+.aislop-btn {
+  appearance: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding: 4px 10px !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  /* Comfortable to hit on a phone, where this extension gets the most use. */
+  min-height: 28px !important;
+}
+
+.aislop-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.aislop-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: default !important;
+}
+
+.aislop-btn-quiet {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: transparent !important;
+}
+
+/* On very small cards there is no room for anything but the badge. */
+@media (max-width: 400px) {
+  .aislop-reason { display: none !important; }
+}
+
+/* A card that is the media element itself cannot hold the overlay, so it gets
+   blurred directly and explains itself through its title attribute. */
+img.aislop-bare,
+video.aislop-bare,
+canvas.aislop-bare {
+  filter: blur(18px) saturate(0.4) !important;
+  cursor: pointer !important;
+}
+
+img.aislop-bare:not(.aislop-blurred),
+video.aislop-bare:not(.aislop-blurred) {
+  /* "Label only" mode: mark it without hiding it. */
+  filter: none !important;
+  outline: 3px solid var(--aislop-accent, #8b5cf6) !important;
+  outline-offset: -3px !important;
+}
+
+/* "Label only" mode: a corner chip instead of a full cover. */
+.aislop-overlay-chip {
+  inset: auto auto 6px 6px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: rgba(124, 58, 237, 0.92) !important;
+  max-width: calc(100% - 12px) !important;
+}
+
+.aislop-overlay-chip .aislop-reason,
+.aislop-overlay-chip .aislop-actions {
+  display: none !important;
+}

@@ -1,0 +1,89 @@
+{
+  "manifest_version": 3,
+  "name": "AI Slop Blocker",
+  "version": "0.1.0",
+  "description": "Hides AI-generated images and videos in Google, YouTube, Bing, DuckDuckGo and Reddit results.",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "AI Slop Blocker",
+    "default_popup": "src/ui/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/ui/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.google.com/*",
+        "*://*.google.co.uk/*",
+        "*://*.google.ie/*",
+        "*://*.google.ca/*",
+        "*://*.google.com.au/*",
+        "*://*.google.co.nz/*",
+        "*://*.google.co.in/*",
+        "*://*.google.de/*",
+        "*://*.google.fr/*",
+        "*://*.google.es/*",
+        "*://*.google.it/*",
+        "*://*.google.nl/*",
+        "*://*.google.be/*",
+        "*://*.google.pt/*",
+        "*://*.google.pl/*",
+        "*://*.google.se/*",
+        "*://*.google.no/*",
+        "*://*.google.dk/*",
+        "*://*.google.fi/*",
+        "*://*.google.ch/*",
+        "*://*.google.at/*",
+        "*://*.google.com.br/*",
+        "*://*.google.co.za/*",
+        "*://*.google.co.jp/*",
+        "*://*.google.com.mx/*",
+        "*://*.google.com.sg/*",
+        "*://*.google.com.ph/*",
+        "*://*.google.com.tr/*",
+        "*://*.google.gr/*",
+        "*://*.google.cz/*",
+        "*://*.youtube.com/*",
+        "*://*.bing.com/*",
+        "*://*.duckduckgo.com/*",
+        "*://*.reddit.com/*"
+      ],
+      "js": [
+        "src/core/patterns.js",
+        "src/core/engine.js",
+        "src/core/settings.js",
+        "src/content/adapters.js",
+        "src/content/runtime.js"
+      ],
+      "css": [
+        "src/content/overlay.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "minimum_chrome_version": "102"
+}

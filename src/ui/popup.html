@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Slop Blocker</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { width: 288px; padding: 12px; }
+    header { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+    header img { width: 26px; height: 26px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="../../icons/icon-48.png" alt="">
+    <h1>AI Slop Blocker</h1>
+  </header>
+
+  <div class="card">
+    <div class="row">
+      <label for="enabled">Filtering</label>
+      <span class="switch"><input type="checkbox" id="enabled"><span></span></span>
+    </div>
+    <div class="row">
+      <label for="sensitivity">Sensitivity</label>
+      <select id="sensitivity">
+        <option value="relaxed">Relaxed</option>
+        <option value="balanced">Balanced</option>
+        <option value="strict">Strict</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="action">When matched</label>
+      <select id="action">
+        <option value="blur">Blur it</option>
+        <option value="hide">Hide it</option>
+        <option value="label">Just label it</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stat" id="pageCount">0</div>
+    <div class="muted">filtered on this page</div>
+    <p class="hint" id="totalCount"></p>
+    <button id="revealAll" class="wide" style="margin-top:8px">Show everything here</button>
+  </div>
+
+  <button id="openOptions" class="primary wide">Settings &amp; block lists</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "ai-slop-blocker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser extension that hides AI-generated images and videos in search results",
+  "type": "commonjs",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "icons": "python3 tools/make-icons.py",
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Slop Blocker — settings</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { padding: 16px; }
+    main { max-width: 620px; margin: 0 auto; }
+    header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    header img { width: 32px; height: 32px; }
+    .saved { color: var(--accent); font-size: 12px; opacity: 0; transition: opacity .2s; }
+    .saved.show { opacity: 1; }
+    .footer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="../../icons/icon-48.png" alt="">
+    <h1>AI Slop Blocker</h1>
+    <span class="saved" id="saved">Saved</span>
+  </header>
+
+  <section class="card">
+    <h2>Filtering</h2>
+    <div class="row">
+      <label for="enabled">Enabled</label>
+      <span class="switch"><input type="checkbox" id="enabled"><span></span></span>
+    </div>
+    <div class="row">
+      <label for="sensitivity">Sensitivity</label>
+      <select id="sensitivity">
+        <option value="relaxed">Relaxed — only near-certain matches</option>
+        <option value="balanced">Balanced</option>
+        <option value="strict">Strict — more false positives</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="action">When something matches</label>
+      <select id="action">
+        <option value="blur">Blur it, click to reveal</option>
+        <option value="hide">Remove it from the page</option>
+        <option value="label">Leave it visible, just label it</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="showReason">Show why it was filtered</label>
+      <span class="switch"><input type="checkbox" id="showReason"><span></span></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Sites</h2>
+    <div class="row"><label for="site-googleImages">Google Images</label><span class="switch"><input type="checkbox" id="site-googleImages"><span></span></span></div>
+    <div class="row"><label for="site-googleSearch">Google Search</label><span class="switch"><input type="checkbox" id="site-googleSearch"><span></span></span></div>
+    <div class="row"><label for="site-youtube">YouTube</label><span class="switch"><input type="checkbox" id="site-youtube"><span></span></span></div>
+    <div class="row"><label for="site-bing">Bing</label><span class="switch"><input type="checkbox" id="site-bing"><span></span></span></div>
+    <div class="row"><label for="site-duckduckgo">DuckDuckGo</label><span class="switch"><input type="checkbox" id="site-duckduckgo"><span></span></span></div>
+    <div class="row"><label for="site-reddit">Reddit</label><span class="switch"><input type="checkbox" id="site-reddit"><span></span></span></div>
+    <div class="row"><label for="site-generic">Every other site</label><span class="switch"><input type="checkbox" id="site-generic"><span></span></span></div>
+    <p class="hint">“Every other site” is coarse — it has no idea what a result card looks like, so it judges each image on its own. Needs the extra permission below.</p>
+  </section>
+
+  <section class="card">
+    <h2>Deep check</h2>
+    <div class="row">
+      <label for="checkMetadata">Read provenance metadata from image files</label>
+      <span class="switch"><input type="checkbox" id="checkMetadata"><span></span></span>
+    </div>
+    <p class="hint">
+      Downloads the first 256&nbsp;KB of images the text signals could not decide on, and looks for
+      C2PA Content Credentials, IPTC <code>DigitalSourceType</code>, Stable Diffusion prompt chunks
+      and similar. This is the most reliable signal there is — but it costs extra requests and needs
+      permission to read images from any site. Off by default.
+    </p>
+    <p class="hint warn" id="permWarning" hidden>Permission not granted yet — turning this on will ask for it.</p>
+  </section>
+
+  <section class="card">
+    <h2>Your rules</h2>
+    <p class="hint">One entry per line. These win over everything else.</p>
+    <label for="blockKeywords">Block anything mentioning</label>
+    <textarea id="blockKeywords" placeholder="ai slop&#10;prompt engineer&#10;subscribe for more ai"></textarea>
+    <label for="blockDomains">Block these domains</label>
+    <textarea id="blockDomains" placeholder="civitai.com&#10;example-slop-farm.net"></textarea>
+    <label for="blockChannels">Block these channels / subreddits</label>
+    <textarea id="blockChannels" placeholder="AI History Shorts&#10;r/aiArt"></textarea>
+    <label for="allowDomains">Never filter these domains</label>
+    <textarea id="allowDomains" placeholder="bbc.co.uk&#10;reuters.com"></textarea>
+    <label for="allowChannels">Never filter these channels</label>
+    <textarea id="allowChannels" placeholder="Channel that reports on AI"></textarea>
+  </section>
+
+  <section class="card">
+    <h2>Stats</h2>
+    <div class="stat" id="totalBlocked">0</div>
+    <div class="muted" id="since">nothing filtered yet</div>
+    <div class="footer" style="margin-top:12px">
+      <button id="resetStats">Reset counter</button>
+      <button id="export">Export settings</button>
+      <button id="import">Import settings</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </section>
+
+  <p class="hint">
+    This filter works from labels, generator names, hosts and file metadata — not by looking at
+    pixels. It will miss unlabelled AI content, and it will occasionally catch a real photo in an
+    article <em>about</em> AI. Use the allow list when it gets one wrong.
+  </p>
+</main>
+<script src="options.js"></script>
+</body>
+</html>

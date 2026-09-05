@@ -45,6 +45,15 @@ const BACKGROUND_SCRIPTS = [
   'src/background/service-worker.js'
 ];
 
+/*
+ * The gecko id is shared by every Gecko-flavoured target so that a signed
+ * build replaces an earlier one rather than installing alongside it.
+ */
+const GECKO = {
+  gecko: { id: 'ai-slop-blocker@alice.local', strict_min_version: '115.0' },
+  gecko_android: { strict_min_version: '120.0' }
+};
+
 export function buildManifest(target) {
   const manifest = {
     manifest_version: 3,
@@ -85,19 +94,32 @@ export function buildManifest(target) {
     ]
   };
 
-  if (target === 'firefox') {
+  if (target === 'mv2') {
+    /*
+     * Manifest V2 build.
+     *
+     * MV3 is the future everywhere, but "the future" is not evenly
+     * distributed: Orion on iOS and older Firefox for Android builds have far
+     * better MV2 coverage than MV3. MV2 costs us nothing here because the
+     * extension never used a service worker for anything that needs one.
+     *
+     * Differences from MV3: host permissions live in `permissions` rather than
+     * their own key, the toolbar button is `browser_action`, and the
+     * background is a non-persistent event page.
+     */
+    manifest.manifest_version = 2;
+    manifest.permissions = ['storage', ...MATCHES];
+    manifest.optional_permissions = ['<all_urls>'];
+    delete manifest.optional_host_permissions;
+    manifest.background = { scripts: BACKGROUND_SCRIPTS, persistent: false };
+    manifest.browser_action = manifest.action;
+    delete manifest.action;
+    manifest.browser_specific_settings = GECKO;
+  } else if (target === 'firefox') {
     /* Firefox MV3 runs the background as an event page, and needs a stable
      * add-on id for AMO and for Firefox for Android. */
     manifest.background = { scripts: BACKGROUND_SCRIPTS };
-    manifest.browser_specific_settings = {
-      gecko: {
-        id: 'ai-slop-blocker@alice.local',
-        strict_min_version: '115.0'
-      },
-      gecko_android: {
-        strict_min_version: '120.0'
-      }
-    };
+    manifest.browser_specific_settings = GECKO;
   } else {
     manifest.background = { service_worker: 'src/background/service-worker.js' };
     manifest.minimum_chrome_version = '102';

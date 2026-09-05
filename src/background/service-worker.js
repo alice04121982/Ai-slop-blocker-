@@ -134,10 +134,46 @@ if (typeof importScripts === 'function' && !globalThis.AISlop?.engine) {
    */
   const GENERIC_SCRIPT_ID = 'aislop-generic';
 
+  const GENERIC_FILES = {
+    js: [
+      'src/core/patterns.js',
+      'src/core/engine.js',
+      'src/core/settings.js',
+      'src/content/adapters.js',
+      'src/content/runtime.js'
+    ],
+    css: ['src/content/overlay.css']
+  };
+
+  /* MV2 has no scripting.registerContentScripts; Gecko's equivalent is
+   * contentScripts.register, which hands back a handle to unregister with. */
+  let mv2Handle = null;
+
+  async function syncGenericScriptMv2(wanted) {
+    if (wanted && !mv2Handle) {
+      try {
+        mv2Handle = await api.contentScripts.register({
+          matches: ['<all_urls>'],
+          js: GENERIC_FILES.js.map((file) => ({ file })),
+          css: GENERIC_FILES.css.map((file) => ({ file })),
+          runAt: 'document_idle'
+        });
+      } catch { /* permission revoked between the check and the call */ }
+    } else if (!wanted && mv2Handle) {
+      try { await mv2Handle.unregister(); } catch { /* already gone */ }
+      mv2Handle = null;
+    }
+  }
+
   async function syncGenericScript() {
-    if (!api.scripting?.registerContentScripts) return;
+    const hasMv3 = !!api.scripting?.registerContentScripts;
+    const hasMv2 = !!api.contentScripts?.register;
+    if (!hasMv3 && !hasMv2) return;
+
     const current = await settingsApi.load();
     const wanted = !!current.sites?.generic && (await hasHostAccess());
+
+    if (!hasMv3) return syncGenericScriptMv2(wanted);
 
     let registered = [];
     try {
@@ -149,14 +185,8 @@ if (typeof importScripts === 'function' && !globalThis.AISlop?.engine) {
         await api.scripting.registerContentScripts([{
           id: GENERIC_SCRIPT_ID,
           matches: ['<all_urls>'],
-          js: [
-            'src/core/patterns.js',
-            'src/core/engine.js',
-            'src/core/settings.js',
-            'src/content/adapters.js',
-            'src/content/runtime.js'
-          ],
-          css: ['src/content/overlay.css'],
+          js: GENERIC_FILES.js,
+          css: GENERIC_FILES.css,
           runAt: 'document_idle',
           persistAcrossSessions: true
         }]);

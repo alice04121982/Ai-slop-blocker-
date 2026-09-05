@@ -6,6 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "node tools/build.mjs",
+    "package": "node tools/build.mjs",
     "icons": "python3 tools/make-icons.py",
     "test": "node --test test/*.test.js"
   },

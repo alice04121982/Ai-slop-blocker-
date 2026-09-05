@@ -7,6 +7,7 @@
  * can silently change behaviour is not worth it here.
  */
 import { buildManifest } from './manifest.mjs';
+import { zipDirectory } from './zip.mjs';
 import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -31,10 +32,15 @@ async function packageFor(target) {
     }
   }
   const manifest = await writeManifest(target, dir);
-  console.log(`built dist/${target} (v${manifest.version})`);
+  /* Stores take a zip, so produce one alongside the unpacked folder. */
+  const zipPath = path.join(ROOT, 'dist', `ai-slop-blocker-${target}-${manifest.version}.zip`);
+  const { entries, bytes } = zipDirectory(dir, zipPath);
+  console.log(`built dist/${target} (v${manifest.version}) -> ${path.basename(zipPath)} ` +
+              `(${entries} files, ${(bytes / 1024).toFixed(0)} KB)`);
 }
 
 await writeManifest('chrome', ROOT);
 console.log('wrote manifest.json (chrome, load-unpacked from repo root)');
 await packageFor('chrome');
 await packageFor('firefox');
+await packageFor('mv2');

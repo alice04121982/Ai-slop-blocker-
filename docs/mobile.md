@@ -70,10 +70,16 @@ If you are on Android and want this, you are switching to Firefox. That is the w
 
 ---
 
-## iOS / iPadOS — Safari
+## iOS / iPadOS
 
-Safari supports Web Extensions, but Apple requires every extension to ship inside a native app,
-so there is a conversion step and it needs a Mac:
+Apple does not let a browser run an extension you simply downloaded. Every route
+below is a way around that, and none of them is as easy as Android. Pick by whether
+you have access to a Mac.
+
+### Route 1 — Safari, via Xcode (reliable, needs a Mac)
+
+This is the only route that definitely works, and it gives you a proper Safari
+extension.
 
 ```bash
 node tools/build.mjs
@@ -81,35 +87,56 @@ xcrun safari-web-extension-converter dist/chrome \
   --project-location ./safari --app-name "AI Slop Blocker" --bundle-identifier com.example.aislopblocker
 ```
 
-Then in Xcode: select the iOS target, set your signing team, and run it on the connected device.
-Afterwards, on the phone: **Settings → Apps → Safari → Extensions → AI Slop Blocker**, turn it
-on, and grant it permission for the sites you want (allowing on all sites is the least annoying
-option).
+Then in Xcode: select the iOS target, set your signing team, plug the phone in and
+press Run. On the phone: **Settings → Apps → Safari → Extensions → AI Slop Blocker**,
+turn it on, and choose **Allow on Every Website** (per-site permission works too, but
+you will be re-approving it constantly).
 
-What you need to know before starting:
+The catches, in order of how much they will annoy you:
 
-- **A Mac with Xcode.** There is no way around this; the conversion tool is part of Xcode.
-- **A free Apple ID works**, but the app expires after **7 days** and has to be re-installed.
-  A paid Apple Developer account ($99/year) extends that to a year, or lets you ship to the
-  App Store.
-- Safari's content-script model is slightly stricter than Chrome's. The extension is written
-  against plain MV3 with no Chrome-only APIs, so it should convert cleanly, but the
-  `scripting.registerContentScripts` call used by catch-all mode is the part most likely to
-  need attention.
+- **You need a Mac with Xcode.** The converter ships as part of Xcode; there is no
+  Windows, Linux or on-device equivalent.
+- **A free Apple ID gets you 7 days.** After that the app stops working and you plug
+  the phone back in and press Run again. The Apple Developer Program ($99/year)
+  extends this to a year and lets you ship to the App Store.
+- Safari's extension APIs are close enough to Chrome's that this extension should
+  convert without changes. `scripting.registerContentScripts`, used only by the
+  opt-in catch-all site mode, is the part most likely to need attention; the six
+  built-in site adapters do not touch it.
 
----
+### Route 2 — Orion, via addons.mozilla.org (no Mac, but no guarantees)
 
-## iOS / iPadOS — Orion
+[Orion](https://kagi.com/orion/) is a WebKit browser for iOS that can install Chrome
+and Firefox extensions. Crucially, on iOS it installs them **from the Chrome Web
+Store or addons.mozilla.org inside the browser** — the "install from disk" option
+that Orion has on macOS is not available on iOS. So this route means actually
+publishing the extension, not just signing it privately:
 
-[Orion](https://kagi.com/orion/) is a WebKit browser for iOS that installs Chrome and Firefox
-extensions directly, with no Mac and no Xcode. If you have gone through the Firefox signing
-steps above, you can install the same signed `.xpi` in Orion on an iPhone.
+1. Build the MV2 package — `dist/ai-slop-blocker-mv2-*.zip`. Use MV2 rather than MV3
+   here: Orion's iOS extension support is explicitly preliminary, and MV2 coverage is
+   considerably better than MV3.
+2. Submit it to <https://addons.mozilla.org/developers/> as a **listed** add-on. It
+   has to be listed, not unlisted, because Orion installs from the public add-on
+   page. Listed means human review and a public listing.
+3. On the iPhone: install Orion, **Settings → Extensions → Advanced**, enable Firefox
+   add-ons, then open the add-on's AMO page in Orion and install it.
 
-Its extension support is a compatibility layer rather than a native implementation, so treat it
-as best-effort — but for this extension, which uses only `storage`, `scripting` and content
-scripts, it is a reasonable bet and by far the least painful iOS route.
+Be realistic about this one. Kagi describe iOS extension support as preliminary and
+note that Apple's restrictions mean a smaller set of APIs is available than on macOS,
+so fewer extensions fully work. The core of this extension — content scripts plus
+`storage` — is the part most likely to be supported, and it degrades rather than
+crashes when an API is missing: every optional API call is feature-detected, so a
+missing badge or a missing `permissions` API costs you the counter or the catch-all
+mode, not the filtering. But "should degrade gracefully" is not "tested on Orion",
+and I have not tested it there.
 
----
+### What does not work on iOS
+
+- Installing a `.xpi` or `.zip` you built yourself, directly, in any iOS browser.
+- Chrome, Edge, Firefox or Brave for iOS. All of them are Safari/WebKit underneath
+  with no extension support of their own.
+- TestFlight as a shortcut — it still needs the Xcode project and a paid developer
+  account.
 
 ## Which sites work on mobile
 

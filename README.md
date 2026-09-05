@@ -72,15 +72,19 @@ This is the part people get wrong, so plainly:
 | --- | --- |
 | **Firefox for Android** | **Yes.** This is the recommended route. |
 | Chrome for Android | **No.** Google has never supported extensions there and it is not a thing this repo can fix. |
-| Safari on iOS/iPadOS | Yes, but only after the extension is wrapped in an app with Xcode. |
-| Orion (iOS) | Yes — installs Firefox add-ons directly, no Mac needed. |
+| Safari on iOS/iPadOS | Yes, but the extension has to be wrapped in an app with Xcode, so you need a Mac. |
+| Orion (iOS) | Maybe. It installs add-ons from the public store pages, not from a file, so this means publishing to addons.mozilla.org — and its iOS extension support is preliminary. |
 
 Full steps for each are in **[docs/mobile.md](docs/mobile.md)**.
 
-The short version for Android: submit `dist/firefox` to
+The short version for Android: submit `dist/ai-slop-blocker-firefox-*.zip` to
 [addons.mozilla.org](https://addons.mozilla.org/developers/) as an **unlisted** add-on (free,
 self-hosted, nobody else sees it), get the signed `.xpi` back, and open that file in Firefox for
 Android. Your settings then sync between phone and desktop through Firefox Sync.
+
+There is no equivalent short version for iPhone. Apple does not allow a browser to install an
+extension from a file, so it is either Safari via Xcode (needs a Mac) or publishing to the add-on
+store for Orion. Both are written out in [docs/mobile.md](docs/mobile.md).
 
 ---
 
@@ -108,10 +112,21 @@ site, which is why it asks first rather than being on out of the box.
 ## Development
 
 ```bash
-npm test          # 37 tests, no dependencies
-node tools/build.mjs   # regenerate manifest.json + dist/
+npm test               # 47 tests, no dependencies
+node tools/build.mjs   # regenerate manifest.json, dist/ folders and store zips
 python3 tools/make-icons.py
 ```
+
+`tools/build.mjs` emits three targets from one manifest definition:
+
+| Target | For |
+| --- | --- |
+| `dist/chrome` | Chrome, Edge, Brave, Opera — and the input to the Safari converter |
+| `dist/firefox` | Firefox desktop and Firefox for Android (MV3) |
+| `dist/mv2` | Manifest V2, for Orion on iOS and older Firefox for Android builds |
+
+Each also produces a `.zip` ready for store submission, written by a small ZIP encoder in
+`tools/zip.mjs` so packaging needs no `zip` binary and works the same on Windows.
 
 No build step and no dependencies on purpose: the extension is plain scripts, so what you read
 in `src/` is exactly what runs in the browser.

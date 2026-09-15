@@ -8,7 +8,8 @@
     "build": "node tools/build.mjs",
     "package": "node tools/build.mjs",
     "icons": "python3 tools/make-icons.py",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js screening-app/test/*.test.js",
+    "screen:test": "node --test screening-app/test/*.test.js"
   },
   "license": "MIT"
 }

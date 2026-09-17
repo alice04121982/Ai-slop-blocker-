@@ -181,3 +181,26 @@ td.num { text-align: right; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
   .progress span { transition: none; }
 }
+
+/* Ask about your summary */
+.chat { display: flex; flex-direction: column; gap: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { appearance: none; font: inherit; font-size: 14px; color: var(--accent); background: var(--accent-soft); border: 1px solid transparent; border-radius: 999px; padding: 8px 14px; cursor: pointer; text-align: left; }
+.chip:hover { border-color: var(--accent); }
+.chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.thread { display: flex; flex-direction: column; gap: 10px; }
+.msg { border-radius: 12px; padding: 12px 14px; max-width: 100%; }
+.msg.user { background: var(--accent-soft); align-self: flex-end; max-width: 90%; }
+.msg.bot { background: var(--surface-2); align-self: flex-start; }
+.msg h4 { margin: 0 0 6px; font-size: 1rem; }
+.msg p { margin: 0 0 8px; }
+.msg p:last-child { margin-bottom: 0; }
+.msg ul { margin: 4px 0 8px; }
+.msg .head { font-weight: 600; margin: 8px 0 4px; }
+.msg .live { white-space: pre-wrap; }
+.ask { display: flex; gap: 8px; align-items: flex-end; }
+.ask textarea { flex: 1; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-height: 48px; max-height: 160px; resize: vertical; }
+.ask textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.ask .btn { min-width: 84px; }
+.status { font-size: 14px; color: var(--muted); }
+@media print { .chat .ask, .chat .chips { display: none !important; } }

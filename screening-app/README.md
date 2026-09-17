@@ -36,6 +36,25 @@ to score.
    sensitivity and specificity, for a general-population prior and a
    self-selected prior, so the user sees how much a positive result is worth.
 
+## Ask about your summary
+
+Under the summary is a question box. It answers from the person's own
+answers and the scoring keys (`explain.js`): which items counted, what the
+thresholds mean, how scores compare with the general population, why social
+difficulty alone is not an autism signal, what would move the result, and so
+on. It is rule-based and runs entirely on the device.
+
+When the page is opened inside a host that offers Claude to the page (the
+claude.ai artifact viewer), an opt-in checkbox appears that also sends the
+question, the scores and the endorsed items to Claude for a fuller answer.
+It is off by default, states exactly what is sent, and never appears on a
+plain static deployment such as Vercel.
+
+## Single-file build
+
+Some hosts cannot serve separate files. `node tools/bundle.js` writes
+`dist/neurodivergence-screen.html` with the CSS and scripts inlined.
+
 ## Privacy and security design
 
 - **No network.** No fetches, no fonts, no analytics, no CDN scripts. A strict

@@ -295,7 +295,7 @@
         break;
       case 'traits':
         tone = 'tone-warn'; title = 'Some neurodivergent traits, below screening thresholds';
-        body = 'Your answers show some features associated with ADHD or autism, but not enough to pass the screening cut-offs. Many people have some of these traits without meeting criteria for a diagnosis. If they cause you real difficulty, that is still worth discussing with a clinician, because screeners miss some people, especially women and people who have learned to mask.';
+        body = 'Your answers include more of the features associated with ADHD or autism than the average adult reports, but not enough to pass any screening cut-off. Everyone has some of these traits. This tier describes the numbers, not you: it is not a suggestion that you are neurodivergent. It becomes worth discussing with a clinician only if these traits cause real difficulty in daily life, because screeners do miss some people, especially women and people who have learned to mask.';
         break;
       default:
         tone = 'tone-ok'; title = 'No indication of ADHD or autism on these screeners';
@@ -380,9 +380,18 @@
     next.appendChild(steps);
     main.appendChild(next);
 
+    renderChat(r);
+
     // Actions
     main.appendChild(el('div', { class: 'row' }, [
-      el('button', { type: 'button', class: 'btn', text: 'Download summary (.txt)', onclick: function () { download(summaryText(r)); } }),
+      el('button', { type: 'button', class: 'btn', text: window.claude ? 'Show summary as text' : 'Download summary (.txt)', onclick: function () {
+        if (!window.claude) { download(summaryText(r)); return; }
+        var existing = document.getElementById('summaryText');
+        if (existing) { existing.remove(); return; }
+        var pre = el('pre', { id: 'summaryText', class: 'card', text: summaryText(r) });
+        pre.style.whiteSpace = 'pre-wrap'; pre.style.fontSize = '14px';
+        main.insertBefore(pre, main.lastChild);
+      } }),
       el('button', { type: 'button', class: 'btn secondary', text: 'Print', onclick: function () { window.print(); } }),
       el('button', { type: 'button', class: 'btn secondary', text: 'Review my answers', onclick: function () { state.done = false; state.step = 0; save(); render(); } })
     ]));
@@ -404,6 +413,109 @@
     c.appendChild(el('div', { class: 'score-row' }, [el('h3', { text: title }), pill(conf.level.charAt(0).toUpperCase() + conf.level.slice(1) + ' confidence', tone)]));
     c.appendChild(el('ul', {}, conf.reasons.map(function (t) { return li(t.charAt(0).toUpperCase() + t.slice(1) + '.'); })));
     return c;
+  }
+
+  // ---------- ask about your summary ----------
+  var LIVE_RULES = [
+    'You are a careful explainer inside an ADHD and autism screening app. The person has just completed three validated screeners (ASRS v1.1, AQ-10, RAADS-14) and is asking about their own results, given below.',
+    'Rules: never diagnose or say whether the person is neurodivergent. Explain what the scores, thresholds and specific endorsed items mean, drawing on published evidence (Kessler 2005; Allison 2012; NICE CG142; Eriksson 2013; DSM-5-TR). Be candid that everyone has some of these traits, that a screener is not a diagnosis, and that childhood onset, impairment across settings and other explanations matter more than a point either side of a cut-off. Keep answers under 200 words, plain English, no headings, no markdown, no bullet symbols. If asked something unrelated to the results, say you can only discuss the summary.',
+    'Results and endorsed items follow.'
+  ].join('\n');
+
+  function renderChat(r) {
+    var E = window.EXPLAIN;
+    if (!E) return;
+    var wrap = el('div', { class: 'card chat' });
+    wrap.appendChild(el('h2', { text: 'Ask about your summary' }));
+    wrap.appendChild(p('Ask why a result came out the way it did, which answers counted, or how your scores compare with other people. Answers are worked out on this device from your answers and the published scoring keys.', 'muted small'));
+
+    var thread = el('div', { class: 'thread', role: 'log', 'aria-live': 'polite' });
+    var chips = el('div', { class: 'chips' });
+    E.SUGGESTIONS.forEach(function (q) {
+      chips.appendChild(el('button', { type: 'button', class: 'chip', text: q, onclick: function () { ask(q); } }));
+    });
+    var input = el('textarea', { id: 'askInput', rows: '2', placeholder: 'Type a question about your results', 'aria-label': 'Your question' });
+    var send = el('button', { type: 'button', class: 'btn', text: 'Ask', onclick: function () { ask(input.value); } });
+    var stop = el('button', { type: 'button', class: 'btn secondary', text: 'Stop', hidden: '' });
+    var status = el('div', { class: 'status' });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(input.value); }
+    });
+
+    // Optional live mode: only exists inside a host that offers Claude to the page.
+    var liveRow = null, liveBox = null, sampleFn = null, ctl = null, turns = [];
+    if (window.claude && typeof window.claude.use === 'function') {
+      liveBox = el('input', { type: 'checkbox', id: 'liveMode' });
+      liveRow = el('label', { class: 'check small', 'for': 'liveMode', hidden: '' }, [liveBox,
+        el('span', { text: 'Also ask Claude for a fuller answer. This sends your scores and endorsed answers, and your question, to Claude on your account. Nothing is stored by this page.' })]);
+      window.claude.use('sample').then(function (fn) {
+        if (fn) { sampleFn = fn; liveRow.hidden = false; }
+      }).catch(function () { /* unavailable */ });
+    }
+
+    wrap.appendChild(chips);
+    wrap.appendChild(thread);
+    if (liveRow) wrap.appendChild(liveRow);
+    wrap.appendChild(el('div', { class: 'ask' }, [input, send, stop]));
+    wrap.appendChild(status);
+    main.appendChild(wrap);
+
+    function bubbleUser(text) {
+      thread.appendChild(el('div', { class: 'msg user', text: text }));
+    }
+    function bubbleLocal(a) {
+      var m = el('div', { class: 'msg bot' });
+      if (a.title) m.appendChild(el('h4', { text: a.title }));
+      a.paragraphs.forEach(function (t) { m.appendChild(p(t)); });
+      a.items.forEach(function (grp) {
+        m.appendChild(el('div', { class: 'head', text: grp.head }));
+        m.appendChild(el('ul', {}, grp.rows.map(li)));
+      });
+      thread.appendChild(m);
+      return m;
+    }
+
+    function ask(text) {
+      text = String(text || '').trim();
+      if (!text) return;
+      input.value = '';
+      bubbleUser(text);
+      var local = E.answer(text, state.answers, r);
+      var m = bubbleLocal(local);
+      m.scrollIntoView({ block: 'nearest' });
+      if (sampleFn && liveBox && liveBox.checked) askLive(text, local);
+    }
+
+    function askLive(text, local) {
+      var out = el('div', { class: 'msg bot' }, [el('h4', { text: 'Claude' }), el('p', { class: 'live', text: 'Thinking…' })]);
+      var body = out.lastChild;
+      thread.appendChild(out);
+      ctl = new AbortController();
+      stop.hidden = false; send.disabled = true;
+      stop.onclick = function () { ctl.abort(); };
+      var lead = { role: 'user', content: LIVE_RULES + '\n\n' + E.contextText(state.answers, r, summaryText(r)) };
+      turns.push({ role: 'user', content: text + '\n\n(The app’s own rule-based answer was: ' + local.title + ' ' + local.paragraphs.join(' ') + ')' });
+      while (turns.length > 8) turns.shift();
+      sampleFn([lead].concat(turns), {
+        cache: false,
+        signal: ctl.signal,
+        onText: function (u) { body.textContent = u.text; }
+      }).then(function (res) {
+        turns.push({ role: 'assistant', content: res.text });
+        status.textContent = res.truncated ? 'The answer was cut short.' : '';
+      }).catch(function (e) {
+        body.textContent = e && e.text ? e.text : '';
+        var code = e && e.code;
+        if (code === 'cancelled') { if (!body.textContent) out.remove(); }
+        else if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled') { out.remove(); liveRow.hidden = true; liveBox.checked = false; status.textContent = 'Asking Claude is not available here. Answers above are worked out on this device.'; }
+        else if (code === 'rate_limited') status.textContent = 'Claude is busy. Try again in a little while.';
+        else if (code === 'refused') { out.remove(); status.textContent = 'Claude declined that question. Try rephrasing it.'; }
+        else status.textContent = 'Claude could not answer just now. The answer above was worked out on this device.';
+        if (!body.textContent && out.parentNode) out.remove();
+      }).then(function () {
+        stop.hidden = true; send.disabled = false; ctl = null;
+      });
+    }
   }
 
   // ---------- export ----------

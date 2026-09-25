@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Private, offline ADHD and autism screening using validated questionnaires. Nothing you enter leaves your device.">
+  <title>Neurodivergence Screen</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <div class="wrap top-row">
+      <span class="brand">Neurodivergence Screen</span>
+      <button type="button" class="link" id="clearBtn" hidden>Clear answers</button>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress"><span id="progressBar"></span></div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1"></main>
+
+  <footer class="wrap foot">
+    <p>This tool runs entirely in your browser. It makes no network requests and stores answers only in this tab until you close it or clear them.</p>
+    <p>It is a screening aid, not a diagnosis. Only a qualified clinician can diagnose ADHD or autism.</p>
+  </footer>
+
+  <noscript><div class="wrap"><p class="card">This screener needs JavaScript to run. It does not load anything from the internet.</p></div></noscript>
+  <script src="data.js"></script>
+  <script src="explain.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
